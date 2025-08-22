@@ -79,16 +79,16 @@ function del()
     if (nowy === 0) { ElMessage.error("本行已清空！"); return; }
     -- nowy;
     board.value[nowx][nowy] = -1;
-    shake.value[nowx][nowy] = false;
     shake.value[nowx][nowy] = true;
+    shake.value[nowx][nowy] = false;
 }
 
 function typeNum(num : number)
 {
     if (nowy === 8) { ElMessage.error("本行已满！"); return; }
     board.value[nowx][nowy] = num;
-    shake.value[nowx][nowy] = false;
     shake.value[nowx][nowy] = true;
+    shake.value[nowx][nowy] = false;
     ++ nowy;
 }
 
@@ -117,7 +117,7 @@ window.addEventListener('keyup', (e) => type(e.key));
         </div>
         <div class="spacer"></div>
         <div class="counter">
-          <CountUp :to="cnt[i - 1]" :start-when="gocnt[i - 1]" :class="[cntbold[i - 1] && 'bold']" @end="processaftercheck"></CountUp>
+          <CountUp :to="cnt[i - 1]" :duration="1" :start-when="gocnt[i - 1]" :class="[cntbold[i - 1] && 'bold']" @end="processaftercheck"></CountUp>
           <Select style="width: 1em; height: 1em;" />
         </div>
       </div>
@@ -137,7 +137,7 @@ window.addEventListener('keyup', (e) => type(e.key));
     <p>祝你好运！</p>
   </el-dialog>
   <el-dialog v-model="overed" :title="winned ? '游戏胜利！' : '游戏结束！'">
-    <p v-if="winned">恭喜你，你成功破解了答案！</p>
+    <p v-if="winned">恭喜你，你使用了{{ nowx }}次猜测，成功破解了答案！</p>
     <p v-else>很遗憾，你没有破解答案。</p>
     <p>答案是：{{ ans.toString(2).padStart(8, "0").substring(0, 4) + " " + ans.toString(2).padStart(8, "0").substring(4, 8) }}</p>
     <div style="text-align: right;">
@@ -198,9 +198,6 @@ window.addEventListener('keyup', (e) => type(e.key));
 
 @keyframes shake {
   0% {
-    transform: scale(1);
-  }
-  50% {
     transform: scale(1.2);
   }
   100% {
@@ -208,14 +205,15 @@ window.addEventListener('keyup', (e) => type(e.key));
   }
 }
 
-.shake
+/* .shake
 {
-  animation: shake 0.2s linear 1;
-}
+  animation: shake 0.2s linear;
+} */
 
 .filled
 {
   border-color: #000;
+  animation: shake 0.2s linear;
 }
 
 @media screen and (max-width: 480px)
