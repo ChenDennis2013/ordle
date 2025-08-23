@@ -4,6 +4,7 @@ import CountUp from './animations/CountUp/CountUp.vue';
 import { Select } from '@element-plus/icons-vue';
 import Keyboard from './components/Keyboard.vue';
 import { ElMessage } from 'element-plus';
+import ClipboardJS from 'clipboard';
 
 const howToPlayVisible = ref(false);
 const board = ref(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => -1)));
@@ -21,8 +22,33 @@ function rander(seed : number)
         return res / 233280;
     }
 }
+const dict = "1qQaAzZ2wWsSxX3+eEdDcC4rRfFvV5tTgGbB6yYhHnN7/uUjJmM8iIkK9oOlL0pP=".split("");
+const idx = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/=".split("");
+function encrypt(n : number)
+{
+    let t = btoa((n * 998244353 + 123456789).toString(36)), res = "";
+    t.split("").forEach((c) => {res += dict[idx.indexOf(c)]});
+    return res;
+}
+function decrypt(s : string)
+{
+    let t = "";
+    s.split("").forEach((c) => {t += idx[dict.indexOf(c)]});
+    try
+    {
+        let n = (parseInt(atob(t), 36) - 123456789) / 998244353;
+        if (n % 1 !== 0 || n < 0 || n >= 0b100000000) throw "Invalid level";
+        return n;
+    }
+    catch (e)
+    {
+        ElMessage.error("自定义关卡错误，已更改为随机关卡！");
+        return Math.floor(rnd() * 0b100000000);
+    }
+}
 const rnd = rander(Date.now());
-let ans = Math.floor(rnd() * 0b100000000);
+const params = new URLSearchParams(window.location.search);
+let ans = params.get("level") == null ? Math.floor(rnd() * 0b100000000) : decrypt(params.get("level") as string);
 let nowx = 0, nowy = 0;
 
 function init()
@@ -99,6 +125,23 @@ function type(key : string)
     if (key === "0" || key === "1") typeNum(+key);
 }
 window.addEventListener('keyup', (e) => type(e.key));
+
+function getshareinfo()
+{
+    let res = "";
+    if (winned.value) res += `我在 ORdle 里用了 ${nowx} 次猜测，成功破解了答案！\n你能比我更快吗？\n`;
+    else res += `我在 ORdle 里没有破解答案。\n你也来试试吧！\n`;
+    res += window.location.href.split("?")[0] + "?level=" + encrypt(ans);
+    return res;
+}
+
+let clipboard = new ClipboardJS('#share', {text: getshareinfo});
+clipboard.on('success', function(e) {
+    ElMessage.success('已将分享信息复制到剪贴板，您可以粘贴到任何地方！');
+});
+clipboard.on('error', function(e) {
+    ElMessage.error('复制失败！');
+});
 </script>
 
 <template>
@@ -142,7 +185,7 @@ window.addEventListener('keyup', (e) => type(e.key));
     <p>答案是：{{ ans.toString(2).padStart(8, "0").substring(0, 4) + " " + ans.toString(2).padStart(8, "0").substring(4, 8) }}</p>
     <div style="text-align: right;">
       <el-button type="primary" @click="init();">再来一局</el-button>
-      <!-- <el-button type="success" class="share">分享</el-button> -->
+      <el-button type="success" id="share">分享</el-button>
     </div>
   </el-dialog>
 </template>
