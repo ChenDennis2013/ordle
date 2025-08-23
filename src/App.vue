@@ -131,7 +131,7 @@ function getshareinfo()
     let res = "";
     if (winned.value) res += `我在 ORdle 里用了 ${nowx} 次猜测，成功破解了答案！\n你能比我更快吗？\n`;
     else res += `我在 ORdle 里没有破解答案。\n你也来试试吧！\n`;
-    res += window.location.href.split("?")[0] + "?level=" + encrypt(ans);
+    res += window.location.href.split("?")[0].split("#")[0] + "?level=" + encrypt(ans);
     return res;
 }
 
