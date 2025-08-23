@@ -103,9 +103,8 @@ window.addEventListener('keyup', (e) => type(e.key));
 
 <template>
   <header style="text-align: center;">
-    <h1 style="display: inline-block; padding-left: 120px; margin-bottom: 10px;">ORdle</h1>
-    <a href="#" @click="howToPlayVisible = true;"
-      style="float: right; margin-top: 30px; margin-right: 50px; font-size: 22px;">怎么玩？</a>
+    <h1 class="title">ORdle</h1>
+    <a href="#" @click="howToPlayVisible = true;" class="how-to-play">怎么玩？</a>
   </header>
   <hr>
   <div id="game">
@@ -148,6 +147,21 @@ window.addEventListener('keyup', (e) => type(e.key));
 </template>
 
 <style scoped>
+.title
+{
+  display: inline-block;
+  padding-left: 120px;
+  margin-bottom: 10px;
+}
+
+.how-to-play
+{
+  float: right;
+  margin-top: 30px;
+  margin-right: 50px;
+  font-size: 22px;
+}
+
 .cell
 {
   display: inline-block;
@@ -218,6 +232,15 @@ window.addEventListener('keyup', (e) => type(e.key));
 
 @media screen and (max-width: 480px)
 {
+    .how-to-play
+    {
+        font-size: 20px;
+        margin-right: 20px;
+    }
+    .title
+    {
+        padding-left: 80px;
+    }
     .cell
     {
         width: 30px;
