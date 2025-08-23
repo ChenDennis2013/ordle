@@ -126,6 +126,7 @@ window.addEventListener('keyup', (e) => type(e.key));
   <footer style="text-align: center; margin-top: 30px;">
     <a href="https://github.com/ChenDennis2013/ordle" target="_blank">Source</a>
     欢迎open issue 或 PR
+    好玩的话给个 star 吧
   </footer>
   <el-dialog v-model="howToPlayVisible" title="怎么玩？">
     <p>首先，系统会随机生成一个 8 位二进制数，接下来，你需要在 8 次猜测中猜出这个数字。</p>
