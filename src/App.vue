@@ -56,12 +56,12 @@ function decrypt(s : string)
 const rnd = rander(Date.now());
 const params = new URLSearchParams(window.location.search);
 let ans = params.get("level") == null ? Math.floor(rnd() * 0b100000000) : decrypt(params.get("level") as string);
-console.log(ans.toString(2));
 let nowx = 0, nowy = 0;
 
 function init()
 {
     overed.value = false;
+    overVisible.value = false;
     ans = Math.floor(rnd() * 0b100000000);
     nowx = nowy = 0;
     for (let i = 0; i < 8; ++ i)
@@ -79,7 +79,6 @@ function init()
 
 function check()
 {
-    console.log(overed.value);
     if (overed.value) return init();
     if (nowy !== 8) { ElMessage.error("请填完一行再按下回车！"); return; }
     let res = 0;
