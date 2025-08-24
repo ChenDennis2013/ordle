@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import CountUp from './animations/CountUp/CountUp.vue';
 import { Select } from '@element-plus/icons-vue';
 import Keyboard from './components/Keyboard.vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import ClipboardJS from 'clipboard';
+import Stats from './components/Stats.vue';
+import { useCookies } from 'vue3-cookies';
 
 const howToPlayVisible = ref(false);
+const statVisible = ref(false);
+let statshandler = 0;
+let statshandler2 = 0;
+const { cookies } = useCookies();
 const board = ref(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => -1)));
 const cnt = ref(Array.from({ length: 8 }, () => 0));
 const gocnt = ref(Array.from({ length: 8 }, () => false));
@@ -14,6 +20,7 @@ const cntbold = ref(Array.from({ length: 8 }, () => false));
 const shake = ref(Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => false)));
 const winned = ref(false);
 const overed = ref(false);
+const overVisible = ref(false);
 function rander(seed : number)
 {
     let res = seed % 233280;
@@ -49,6 +56,7 @@ function decrypt(s : string)
 const rnd = rander(Date.now());
 const params = new URLSearchParams(window.location.search);
 let ans = params.get("level") == null ? Math.floor(rnd() * 0b100000000) : decrypt(params.get("level") as string);
+console.log(ans.toString(2));
 let nowx = 0, nowy = 0;
 
 function init()
@@ -71,6 +79,7 @@ function init()
 
 function check()
 {
+    console.log(overed.value);
     if (overed.value) return init();
     if (nowy !== 8) { ElMessage.error("请填完一行再按下回车！"); return; }
     let res = 0;
@@ -82,14 +91,25 @@ function check()
 
 function gamewin()
 {
+    cookies.set("tot", ((+cookies.get("tot") || 0) + 1).toString(), -1);
+    cookies.set(`won${nowx}`, ((+cookies.get(`won${nowx}`) || 0) + 1).toString(), -1);
+    cookies.set("streak", ((+cookies.get("streak") || 0) + 1).toString(), -1);
+    if ((+cookies.get("maxstreak") || 0) < +cookies.get("streak"))
+        cookies.set("maxstreak", cookies.get("streak"), -1);
     winned.value = true;
     overed.value = true;
+    overVisible.value = true;
+    ++ statshandler2;
 }
 
 function gameover()
 {
+    cookies.set("tot", ((+cookies.get("tot") || 0) + 1).toString(), -1);
+    cookies.set("streak", "0", -1);
     winned.value = false;
     overed.value = true;
+    overVisible.value = true;
+    ++ statshandler2;
 }
 
 function processaftercheck()
@@ -142,10 +162,25 @@ clipboard.on('success', function(e) {
 clipboard.on('error', function(e) {
     ElMessage.error('复制失败！');
 });
+
+function resetstats()
+{
+    ElMessageBox.confirm("确定要清空统计吗？", "提示", {confirmButtonText: "确定", cancelButtonText: "取消"})
+        .then(() => {
+        cookies.remove("tot");
+        cookies.remove("streak");
+        cookies.remove("maxstreak");
+        for (let i = 1; i <= 8; ++ i)
+            cookies.remove(`won${i}`);
+        ElMessage.info("统计已清空！");
+        statVisible.value = false;
+    });
+}
 </script>
 
 <template>
   <header style="text-align: center;">
+    <a href="#" @click="++ statshandler; statVisible = true;" class="statsa">统计</a>
     <h1 class="title">ORdle</h1>
     <a href="#" @click="howToPlayVisible = true;" class="how-to-play">怎么玩？</a>
   </header>
@@ -168,7 +203,7 @@ clipboard.on('error', function(e) {
   </div>
   <footer style="text-align: center; margin-top: 30px;">
     <a href="https://github.com/ChenDennis2013/ordle" target="_blank">Source</a>
-    欢迎open issue 或 PR
+    欢迎open issue 或 PR &nbsp;
     好玩的话给个 star 吧
   </footer>
   <el-dialog v-model="howToPlayVisible" title="怎么玩？">
@@ -176,17 +211,23 @@ clipboard.on('error', function(e) {
     <p>每一次猜测，你需要给出一个 8 位二进制数，系统会告诉你你的本次猜测与上次猜测（一开始为 0000 0000）的按位或结果与答案有几位数字相同，但不会告诉你哪些数字是相同的。</p>
     <p>当系统告诉你有 8 位数字相同时，游戏胜利。</p>
     <p>当你 8 次都没猜对，游戏失败，系统会告诉你答案。</p>
-    <p>在结束游戏后，你可以重新开始游戏<!--或者点击“分享”按钮分享你的成绩-->。</p>
+    <p>在结束游戏后，你可以重新开始游戏，或者点击“分享”按钮分享你的成绩。</p>
     <p>祝你好运！</p>
   </el-dialog>
-  <el-dialog v-model="overed" :title="winned ? '游戏胜利！' : '游戏结束！'">
+  <el-dialog v-model="overVisible" :title="winned ? '游戏胜利！' : '游戏结束！'">
     <p v-if="winned">恭喜你，你使用了{{ nowx }}次猜测，成功破解了答案！</p>
     <p v-else>很遗憾，你没有破解答案。</p>
     <p>答案是：{{ ans.toString(2).padStart(8, "0").substring(0, 4) + " " + ans.toString(2).padStart(8, "0").substring(4, 8) }}</p>
+    <Stats :key="statshandler2" />
     <div style="text-align: right;">
       <el-button type="primary" @click="init();">再来一局</el-button>
       <el-button type="success" id="share">分享</el-button>
     </div>
+  </el-dialog>
+  <el-dialog v-model="statVisible" title="统计">
+    <Stats :key="statshandler" />
+    &emsp;
+    <div style="text-align: right;"><el-button type="danger" @click="resetstats();">清空统计</el-button></div>
   </el-dialog>
 </template>
 
@@ -194,7 +235,7 @@ clipboard.on('error', function(e) {
 .title
 {
   display: inline-block;
-  padding-left: 120px;
+  padding-left: 44px;
   margin-bottom: 10px;
 }
 
@@ -203,6 +244,14 @@ clipboard.on('error', function(e) {
   float: right;
   margin-top: 30px;
   margin-right: 50px;
+  font-size: 22px;
+}
+
+.statsa
+{
+  float: left;
+  margin-top: 30px;
+  margin-left: 50px;
   font-size: 22px;
 }
 
@@ -281,9 +330,14 @@ clipboard.on('error', function(e) {
         font-size: 20px;
         margin-right: 20px;
     }
+    .statsa
+    {
+        font-size: 20px;
+        margin-left: 20px;
+    }
     .title
     {
-        padding-left: 80px;
+        padding-left: 40px;
     }
     .cell
     {
