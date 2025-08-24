@@ -180,6 +180,7 @@ function resetstats()
 <template>
   <header style="text-align: center;">
     <a href="#" @click="++ statshandler; statVisible = true;" class="statsa">统计</a>
+    <a href="#" @click="gameover();" class="statsa">放弃</a>
     <h1 class="title">ORdle</h1>
     <a href="#" @click="howToPlayVisible = true;" class="how-to-play">怎么玩？</a>
   </header>
@@ -234,7 +235,7 @@ function resetstats()
 .title
 {
   display: inline-block;
-  padding-left: 44px;
+  padding-right: 50px;
   margin-bottom: 10px;
 }
 
@@ -336,7 +337,9 @@ function resetstats()
     }
     .title
     {
-        padding-left: 40px;
+        /* padding-left: 40px; */
+        font-size: 20px;
+        margin-top: 30px;
     }
     .cell
     {
