@@ -31,8 +31,8 @@ function gop(x : number)
 <div class="progress">
     尝试次数分布
     <div class="progress-text" v-for="i in 8">
+        <span style="display: inline-block;">{{ i }}次</span>
         <el-progress class="progressbar" :percentage="gop(Math.round(won[i] / wonsum * 100))" :stroke-width="20" :text-inside="true" status="success" />
-        &nbsp;
         <span style="display: inline-block;">{{ won[i] }}</span>
     </div>
 </div>
@@ -59,7 +59,15 @@ function gop(x : number)
 
 .progressbar
 {
-    width: 95%;
+    width: 93%;
     display: inline-block;
+}
+
+.progress-text
+{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
 }
 </style>
